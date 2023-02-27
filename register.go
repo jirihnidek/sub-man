@@ -190,7 +190,7 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 
 	// TODO: when not-SCA mode is used, then try to do auto-attach, when it was requested
 
-	// TODO: when we have entitlement certificate(s), then generate get content from ent. certs.
+	// TODO: when we have entitlement certificate(s), then generate content from ent. certs.
 	//       and generate redhat.repo
 
 	return nil

@@ -163,9 +163,11 @@ func getSCAEntitlementCertificate() error {
 	// Write certificate(s) to file(s)
 	for _, entCert := range entCertificates {
 		_ = writeEntitlementCert(&entCert.Cert, entCert.Serial.Serial)
-		_, err = generateContentFromEntCert(&entCert.Cert)
-		fmt.Printf("unable to generate content: %s", err)
 		_ = writeEntitlementKey(&entCert.Key, entCert.Serial.Serial)
+		err = generateContentFromEntCert(entCert.Serial.Serial, &entCert.Cert)
+		if err != nil {
+			fmt.Printf("unable to generate content: %s", err)
+		}
 	}
 
 	return nil

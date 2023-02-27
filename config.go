@@ -52,6 +52,7 @@ type RHSMConf struct {
 		// Configuration options related to RPMs and repositories
 		BaseURL              string `ini:"baseurl" default:"https://cdn.redhat.com"`
 		ReportPackageProfile bool   `ini:"report_package_profile" default:"true"`
+		RepoCACertificate    string `ini:"repo_ca_cert" default:"/etc/rhsm/ca/redhat-uep.pem"`
 	} `ini:"rhsm"`
 
 	// RHSMCertDaemon represents section [rhsmcertd]
