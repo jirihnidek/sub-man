@@ -153,20 +153,37 @@ func getSCAEntitlementCertificate() error {
 	}
 
 	// Try to get SCA entitlement certificate(s). It should be only one certificate,
-	// but it is returned in the list. Thus, in theory there could be more certificates.
+	// but it is returned in the list (due to backward compatibility).
 	var entCertificates []EntitlementCertificateJSON
 	err = json.Unmarshal([]byte(*resBody), &entCertificates)
 	if err != nil {
 		return err
 	}
 
+	var serial int64
+	var certContent *string
+	var idx = -1
+
 	// Write certificate(s) to file(s)
-	for _, entCert := range entCertificates {
+	for id, entCert := range entCertificates {
 		_ = writeEntitlementCert(&entCert.Cert, entCert.Serial.Serial)
 		_ = writeEntitlementKey(&entCert.Key, entCert.Serial.Serial)
-		err = generateContentFromEntCert(entCert.Serial.Serial, &entCert.Cert)
+		serial = entCert.Serial.Serial
+		certContent = &entCert.Cert
+		idx = id
+	}
+
+	if idx == 0 {
+		err = generateContentFromEntCert(serial, certContent)
 		if err != nil {
-			fmt.Printf("unable to generate content: %s", err)
+			return fmt.Errorf("unable to generate content: %s", err)
+		}
+	} else {
+		if idx > 0 {
+			return fmt.Errorf("more than one SCA (%d) entitlement certificates installed", idx+1)
+		}
+		if idx == -1 {
+			return fmt.Errorf("no SCA entitlement certificate installed")
 		}
 	}
 

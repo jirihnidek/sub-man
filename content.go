@@ -13,6 +13,9 @@ import (
 	"time"
 )
 
+const DefaultRepoFilePath = "/etc/yum.repos.d/redhat.repo"
+
+// Product is structure containing information about engineering products
 type Product struct {
 	Id            string        `json:"id"`
 	Name          string        `json:"name"`
@@ -33,6 +36,7 @@ type Product struct {
 	} `json:"content"`
 }
 
+// EntitlementContentJSON is structure containing information about content (decoded from entitlement certificate)
 type EntitlementContentJSON struct {
 	Consumer     string `json:"consumer"`
 	Subscription struct {
@@ -49,7 +53,7 @@ type EntitlementContentJSON struct {
 }
 
 // writeRepoFile tries to write list of products to repo file
-func writeRepoFile(serial int64, products []Product) error {
+func writeRepoFile(filePath string, serial int64, products []Product) error {
 	file := ini.Empty()
 
 	ini.PrettyFormat = false
@@ -111,9 +115,9 @@ func writeRepoFile(serial int64, products []Product) error {
 		}
 	}
 
-	err := file.SaveTo("/etc/yum.repos.d/redhat.repo")
+	err := file.SaveTo(filePath)
 	if err != nil {
-		return fmt.Errorf("unable to write /etc/yum.repos.d/redhat.repo: %s", err)
+		return fmt.Errorf("unable to write to %s: %s", filePath, err)
 	}
 	return nil
 }
@@ -148,7 +152,7 @@ func generateContentFromEntCert(serial int64, entCert *string) error {
 					return err
 				}
 
-				err = writeRepoFile(serial, entitlementContents.Products)
+				err = writeRepoFile(DefaultRepoFilePath, serial, entitlementContents.Products)
 			}
 		}
 		data = rest

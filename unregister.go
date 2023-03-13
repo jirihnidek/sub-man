@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 )
 
+// unregister tries to unregister system
 func unregister() error {
 	consumerCertFile := rhsmClient.consumerCertPath()
 	consumerKeyFile := rhsmClient.consumerKeyPath()
@@ -61,7 +62,11 @@ func unregister() error {
 		// TODO: log that it was not possible to remove file
 	}
 
-	// TODO: remove definitions of repositories from redhat.repo
+	// Remove redhat.repo file
+	err = os.Remove(DefaultRepoFilePath)
+	if err != nil {
+		return fmt.Errorf("unable to remove %s: %s", DefaultRepoFilePath, err)
+	}
 
 	return nil
 }

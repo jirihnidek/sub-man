@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 )
 
@@ -117,15 +119,27 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 		// TODO: try to get some real facts.
 	}
 
+	hostname, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("unable to get hostname: %s", err)
+	}
+
+	sysPurpose, err := getSystemPurpose(DefaultSystemPurposeFilePath)
+	if err != nil {
+		return err
+	}
+
 	// Create body for the register request
 	headers["Content-type"] = "application/json"
 	registerData := RegisterData{
-		Type:  "system",
-		Name:  "hostname", // TODO: get real hostname
-		Facts: &facts,
+		Type:         "system",
+		Name:         hostname,
+		Facts:        &facts,
+		Role:         sysPurpose.Role,
+		Usage:        sysPurpose.Usage,
+		ServiceLevel: sysPurpose.ServiceLevelAgreement,
 		// TODO: get list of installed product certificates
 		// TODO: get list of all tags in installed product certificates
-		// TODO: get system purpose values
 	}
 	body, err := json.Marshal(registerData)
 	if err != nil {
@@ -180,7 +194,7 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 		return err
 	}
 
-	// When we are in SCA mode, then we can get entitlement cert
+	// When we are in SCA mode, then we can get entitlement cert and generate content
 	if consumerData.Owner.ContentAccessMode == "org_environment" {
 		err = getSCAEntitlementCertificate()
 		if err != nil {
@@ -188,10 +202,7 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 		}
 	}
 
-	// TODO: when not-SCA mode is used, then try to do auto-attach, when it was requested
-
-	// TODO: when we have entitlement certificate(s), then generate content from ent. certs.
-	//       and generate redhat.repo
+	// TODO: when not-SCA mode is used, then try to do auto-attach, when it was requested and generate content
 
 	return nil
 }
