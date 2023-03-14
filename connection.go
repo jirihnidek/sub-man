@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -171,7 +171,36 @@ func createHTTPsClient(certFile *string, keyFile *string) (*http.Client, error) 
 		}
 	}
 
-	transport := &http.Transport{TLSClientConfig: tlsConfig}
+	var transport *http.Transport
+
+	if rhsmClient.RHSMConf.Server.ProxyHostname != "" {
+		proxyScheme := rhsmClient.RHSMConf.Server.ProxyScheme
+		proxyHostname := rhsmClient.RHSMConf.Server.ProxyHostname
+		proxyPort := rhsmClient.RHSMConf.Server.ProxyPort
+		proxyUser := rhsmClient.RHSMConf.Server.ProxyUser
+		proxyPassword := rhsmClient.RHSMConf.Server.ProxyPassword
+
+		var proxyURLString string
+		if proxyUser != "" && proxyPassword != "" {
+			proxyURLString = proxyScheme + "://" + proxyUser + ":" + proxyPassword + "@" + proxyHostname + ":" + proxyPort
+		} else {
+			proxyURLString = proxyScheme + "://" + proxyHostname + ":" + proxyPort
+		}
+		proxyURL, err := url.Parse(proxyURLString)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse proxy URL: %s", err)
+		}
+
+		transport = &http.Transport{
+			TLSClientConfig: tlsConfig,
+			Proxy:           http.ProxyURL(proxyURL),
+		}
+	} else {
+		transport = &http.Transport{
+			TLSClientConfig: tlsConfig,
+		}
+	}
+
 	client := &http.Client{Transport: transport}
 
 	return client, nil
@@ -227,7 +256,7 @@ func createCertAuthConnection(
 
 // getResponseBody tries to get response body
 func getResponseBody(response *http.Response) (*string, error) {
-	resBody, err := ioutil.ReadAll(response.Body)
+	resBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error: reading response body: %s\n", err)
 	}
