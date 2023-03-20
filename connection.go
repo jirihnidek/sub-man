@@ -108,16 +108,22 @@ func (connection *RHSMConnection) request(
 		}
 	}
 
-	dumpReq, _ := httputil.DumpRequestOut(req, true)
-	fmt.Printf("\nREQUEST:\n%s\n\n", string(dumpReq))
+	printReq := os.Getenv("SUBMAN_DEBUG_PRINT_REQUEST")
+	if printReq != "" {
+		dumpReq, _ := httputil.DumpRequestOut(req, true)
+		fmt.Printf("%s\n", string(dumpReq))
+	}
 
 	res, err := connection.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making http request %s: %s\n", method, err)
 	}
 
-	dumpRes, _ := httputil.DumpResponse(res, true)
-	fmt.Printf("\nRESPONSE:\n%s\n\n", string(dumpRes))
+	printRes := os.Getenv("SUBMAN_DEBUG_PRINT_RESPONSE")
+	if printRes != "" {
+		dumpRes, _ := httputil.DumpResponse(res, true)
+		fmt.Printf("%s\n", string(dumpRes))
+	}
 
 	return res, nil
 }
