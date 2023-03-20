@@ -7,13 +7,6 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-type ProxyScheme string
-
-const (
-	httpProxyScheme  ProxyScheme = "http"
-	httpsProxyScheme ProxyScheme = "https"
-)
-
 const defaultRHSMConfFilePath = "/etc/rhsm/rhsm.conf"
 
 // RHSMConf is structure intended for storing configuration
@@ -31,11 +24,11 @@ type RHSMConf struct {
 		Timeout  int32  `ini:"server_timeout" default:"180"`
 
 		// Proxy settings
-		ProxyHostname string      `ini:"proxy_hostname" default:""`
-		ProxyScheme   ProxyScheme `ini:"proxy_scheme" default:""`
-		ProxyPort     string      `ini:"proxy_port" default:""`
-		ProxyUser     string      `ini:"proxy_user" default:""`
-		ProxyPassword string      `ini:"proxy_password" default:""`
+		ProxyHostname string `ini:"proxy_hostname" default:""`
+		ProxyScheme   string `ini:"proxy_scheme" default:"http"`
+		ProxyPort     string `ini:"proxy_port" default:"3128"`
+		ProxyUser     string `ini:"proxy_user" default:""`
+		ProxyPassword string `ini:"proxy_password" default:""`
 
 		// List of hostnames, when connection should not go through proxy server
 		NoProxy []string `ini:"no_proxy" default:"[]"`
