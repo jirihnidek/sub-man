@@ -15,8 +15,8 @@ import (
 
 const DefaultRepoFilePath = "/etc/yum.repos.d/redhat.repo"
 
-// Product is structure containing information about engineering products
-type Product struct {
+// EngineeringProduct is structure containing information about one engineering product.
+type EngineeringProduct struct {
 	Id            string        `json:"id"`
 	Name          string        `json:"name"`
 	Version       string        `json:"version"`
@@ -47,13 +47,13 @@ type EntitlementContentJSON struct {
 		Start time.Time `json:"start"`
 		End   time.Time `json:"end"`
 	} `json:"order"`
-	Products []Product `json:"products"`
+	Products []EngineeringProduct `json:"products"`
 	Pool     struct {
 	} `json:"pool"`
 }
 
 // writeRepoFile tries to write list of products to repo file
-func writeRepoFile(filePath string, serial int64, products []Product) error {
+func writeRepoFile(filePath string, serial int64, products []EngineeringProduct) error {
 	file := ini.Empty()
 
 	ini.PrettyFormat = false
