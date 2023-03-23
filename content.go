@@ -7,7 +7,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"gopkg.in/ini.v1"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"strconv"
 	"time"
@@ -15,8 +15,8 @@ import (
 
 const DefaultRepoFilePath = "/etc/yum.repos.d/redhat.repo"
 
-// Product is structure containing information about engineering products
-type Product struct {
+// EngineeringProduct is structure containing information about one engineering product.
+type EngineeringProduct struct {
 	Id            string        `json:"id"`
 	Name          string        `json:"name"`
 	Version       string        `json:"version"`
@@ -47,13 +47,13 @@ type EntitlementContentJSON struct {
 		Start time.Time `json:"start"`
 		End   time.Time `json:"end"`
 	} `json:"order"`
-	Products []Product `json:"products"`
+	Products []EngineeringProduct `json:"products"`
 	Pool     struct {
 	} `json:"pool"`
 }
 
 // writeRepoFile tries to write list of products to repo file
-func writeRepoFile(filePath string, serial int64, products []Product) error {
+func writeRepoFile(filePath string, serial int64, products []EngineeringProduct) error {
 	file := ini.Empty()
 
 	ini.PrettyFormat = false
@@ -126,6 +126,9 @@ func writeRepoFile(filePath string, serial int64, products []Product) error {
 // and write content to repo file
 func generateContentFromEntCert(serial int64, entCert *string) error {
 	data := []byte(*entCert)
+	blockEntitlementDataFound := false
+
+	// Go through the entitlement certificate and try to get block "ENTITLEMENT DATA"
 	for data != nil {
 		block, rest := pem.Decode(data)
 		if block == nil {
@@ -133,13 +136,14 @@ func generateContentFromEntCert(serial int64, entCert *string) error {
 		} else {
 			// Content is saved in this block type
 			if block.Type == "ENTITLEMENT DATA" {
+				blockEntitlementDataFound = true
 				// The "block.Bytes" is already base64 decoded. We can try to un-compress.
 				b := bytes.NewReader(block.Bytes)
 				zReader, err := zlib.NewReader(b)
 				if err != nil {
 					return fmt.Errorf("unable to create new zlib readed for ENTITLEMENT DATA: %s", err)
 				}
-				p, err := ioutil.ReadAll(zReader)
+				p, err := io.ReadAll(zReader)
 				if err != nil {
 					return fmt.Errorf("unable to uncompress ENTITLEMENT DATA: %s", err)
 				}
@@ -157,5 +161,10 @@ func generateContentFromEntCert(serial int64, entCert *string) error {
 		}
 		data = rest
 	}
+
+	if blockEntitlementDataFound == false {
+		return fmt.Errorf("unable to generate content, because no block \"ENTITLEMENT DATA\" found")
+	}
+
 	return nil
 }
