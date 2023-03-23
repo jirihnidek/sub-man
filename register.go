@@ -8,26 +8,22 @@ import (
 	"path/filepath"
 )
 
-type Facts struct {
+// SystemFacts is collection of system facts necessary during registration
+type SystemFacts struct {
 	SystemCertificateVersion string `json:"system.certificate_version"`
 }
 
 // RegisterData is structure representing JSON data used for register request
 type RegisterData struct {
-	Type              string `json:"type"`
-	Name              string `json:"name"`
-	Facts             *Facts `json:"facts"`
-	InstalledProducts []struct {
-		ProductId   string `json:"productId"`
-		ProductName string `json:"productName"`
-		Version     string `json:"version"`
-		Arch        string `json:"arch"`
-	} `json:"installedProducts"`
-	ContentTags  []interface{} `json:"contentTags"`
-	Role         string        `json:"role"`
-	AddOns       []interface{} `json:"addOns"`
-	Usage        string        `json:"usage"`
-	ServiceLevel string        `json:"serviceLevel"`
+	Type              string             `json:"type"`
+	Name              string             `json:"name"`
+	Facts             *SystemFacts       `json:"facts"`
+	InstalledProducts []InstalledProduct `json:"installedProducts"`
+	ContentTags       []string           `json:"contentTags"`
+	Role              string             `json:"role"`
+	AddOns            []interface{}      `json:"addOns"`
+	Usage             string             `json:"usage"`
+	ServiceLevel      string             `json:"serviceLevel"`
 }
 
 // ConsumerData is structure used for parsing JSON data returned during registration
@@ -97,6 +93,7 @@ type ConsumerData struct {
 	Environments   interface{}   `json:"environments"`
 }
 
+// registerUsernamePasswordOrg tries to register system using organization id, username and password
 func registerUsernamePasswordOrg(username *string, password *string, org *string) error {
 	var headers = make(map[string]string)
 
@@ -114,7 +111,7 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 	}
 
 	// It is necessary to set system certificate version to value 3.0 or higher
-	facts := Facts{
+	facts := SystemFacts{
 		SystemCertificateVersion: "3.2",
 		// TODO: try to get some real facts.
 	}
@@ -129,17 +126,23 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 		return err
 	}
 
+	installedProducts := getInstalledProducts(err)
+
+	fmt.Printf("installed products: %s\n", installedProducts)
+
+	contentTags := createListOfContentTags(installedProducts)
+
 	// Create body for the register request
 	headers["Content-type"] = "application/json"
 	registerData := RegisterData{
-		Type:         "system",
-		Name:         hostname,
-		Facts:        &facts,
-		Role:         sysPurpose.Role,
-		Usage:        sysPurpose.Usage,
-		ServiceLevel: sysPurpose.ServiceLevelAgreement,
-		// TODO: get list of installed product certificates
-		// TODO: get list of all tags in installed product certificates
+		Type:              "system",
+		Name:              hostname,
+		Facts:             &facts,
+		Role:              sysPurpose.Role,
+		Usage:             sysPurpose.Usage,
+		ServiceLevel:      sysPurpose.ServiceLevelAgreement,
+		InstalledProducts: installedProducts,
+		ContentTags:       contentTags,
 	}
 	body, err := json.Marshal(registerData)
 	if err != nil {
@@ -205,6 +208,43 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 	// TODO: when not-SCA mode is used, then try to do auto-attach, when it was requested and generate content
 
 	return nil
+}
+
+func getInstalledProducts(err error) []InstalledProduct {
+	fmt.Printf("reading product directory: %s\n", rhsmClient.RHSMConf.RHSM.ProductCertDir)
+	installedProducts, err := readAllProductCertificates(rhsmClient.RHSMConf.RHSM.ProductCertDir)
+	if err != nil {
+		fmt.Printf("failed reading prod dir: %s\n", err)
+	}
+
+	fmt.Printf("reading default product directory: %s\n", DirectoryDefaultProductCertificate)
+	installedDefaultProducts, err := readAllProductCertificates(DirectoryDefaultProductCertificate)
+	if err != nil {
+		fmt.Printf("failed reading default prod dir: %s\n", err)
+	}
+
+	installedProducts = append(installedProducts, installedDefaultProducts...)
+	return installedProducts
+}
+
+// createListOfContentTags creates list of unique tags from the list of installed products
+func createListOfContentTags(installedProducts []InstalledProduct) []string {
+	var contentTags []string
+	// We use map, because there is nothing like set
+	var contentTagsMap = make(map[string]bool)
+	for _, prod := range installedProducts {
+		for _, tag := range prod.providedTags {
+			_, exists := contentTagsMap[tag]
+			if !exists {
+				contentTagsMap[tag] = true
+			}
+		}
+	}
+	// Create list from the map
+	for tagName, _ := range contentTagsMap {
+		contentTags = append(contentTags, tagName)
+	}
+	return contentTags
 }
 
 // writeConsumerCert tries to write consumer certificate. It is
