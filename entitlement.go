@@ -37,6 +37,7 @@ type EntitlementCertificateJSON struct {
 }
 
 // getEntitlementSerials tries to get list of entitlement serial numbers for given consumer.
+// This method should be used only in non-SCA mode
 func getEntitlementSerials() (*[]int64, error) {
 	var entitlementSerialNumbers []int64
 	consumerCertFile := rhsmClient.consumerCertPath()
@@ -82,6 +83,7 @@ func getEntitlementSerials() (*[]int64, error) {
 
 // getEntitlementCertificate tries to get entitlement certificate with given serial number.
 // When it is possible to get entitlement certificate, then this certificate is written to file.
+// This method should be used only in non-SCA mode
 func getEntitlementCertificate(serialNum int64) error {
 	consumerCertFile := rhsmClient.consumerCertPath()
 
@@ -125,7 +127,9 @@ func getEntitlementCertificate(serialNum int64) error {
 }
 
 // getEntitlementCertificate tries to get all SCA entitlement certificate(s).
-// When it is possible to get entitlement certificate(s), then write these certificate(s)  to file.
+// When it is possible to get entitlement certificate(s), then write these certificate(s) to file.
+// Note: candlepin server returns only one SCA entitlement certificate ATM, but REST API allows to
+// return more entitlement certificates.
 func getSCAEntitlementCertificate() error {
 	consumerCertFile := rhsmClient.consumerCertPath()
 
@@ -173,6 +177,8 @@ func getSCAEntitlementCertificate() error {
 		idx = id
 	}
 
+	// When one entitlement certificate was returned, then generate redhat.repo from this
+	// entitlement certificate
 	if idx == 0 {
 		err = generateContentFromEntCert(serial, certContent)
 		if err != nil {
