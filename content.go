@@ -7,7 +7,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"gopkg.in/ini.v1"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"strconv"
 	"time"
@@ -126,6 +126,9 @@ func writeRepoFile(filePath string, serial int64, products []EngineeringProduct)
 // and write content to repo file
 func generateContentFromEntCert(serial int64, entCert *string) error {
 	data := []byte(*entCert)
+	blockEntitlementDataFound := false
+
+	// Go through the entitlement certificate and try to get block "ENTITLEMENT DATA"
 	for data != nil {
 		block, rest := pem.Decode(data)
 		if block == nil {
@@ -133,13 +136,14 @@ func generateContentFromEntCert(serial int64, entCert *string) error {
 		} else {
 			// Content is saved in this block type
 			if block.Type == "ENTITLEMENT DATA" {
+				blockEntitlementDataFound = true
 				// The "block.Bytes" is already base64 decoded. We can try to un-compress.
 				b := bytes.NewReader(block.Bytes)
 				zReader, err := zlib.NewReader(b)
 				if err != nil {
 					return fmt.Errorf("unable to create new zlib readed for ENTITLEMENT DATA: %s", err)
 				}
-				p, err := ioutil.ReadAll(zReader)
+				p, err := io.ReadAll(zReader)
 				if err != nil {
 					return fmt.Errorf("unable to uncompress ENTITLEMENT DATA: %s", err)
 				}
@@ -157,5 +161,10 @@ func generateContentFromEntCert(serial int64, entCert *string) error {
 		}
 		data = rest
 	}
+
+	if blockEntitlementDataFound == false {
+		return fmt.Errorf("unable to generate content, because no block \"ENTITLEMENT DATA\" found")
+	}
+
 	return nil
 }
