@@ -21,7 +21,7 @@ func identityAction(ctx *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("system identity: %v\n", *uuid)
+	fmt.Printf("System identity: %v\n", *uuid)
 
 	return nil
 }
