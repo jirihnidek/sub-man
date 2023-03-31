@@ -126,9 +126,7 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 		return err
 	}
 
-	installedProducts := getInstalledProducts(err)
-
-	fmt.Printf("installed products: %s\n", installedProducts)
+	installedProducts := getInstalledProducts()
 
 	contentTags := createListOfContentTags(installedProducts)
 
@@ -183,6 +181,8 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 		return err
 	}
 
+	fmt.Printf("System registered\n")
+
 	certFilePath := filepath.Join(rhsmClient.RHSMConf.RHSM.ConsumerCertDir, "cert.pem")
 	keyFilePath := filepath.Join(rhsmClient.RHSMConf.RHSM.ConsumerCertDir, "key.pem")
 	rhsmClient.ConsumerCertAuthConnection, err = createCertAuthConnection(
@@ -197,30 +197,76 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 		return err
 	}
 
-	// When we are in SCA mode, then we can get entitlement cert and generate content
+	// When we are in SCA mode, then we can get entitlement cert(s) and generate content
 	if consumerData.Owner.ContentAccessMode == "org_environment" {
-		err = getSCAEntitlementCertificate()
+		err = enableContent()
 		if err != nil {
 			return err
 		}
+	} else {
+		return fmt.Errorf("organization %s does not use Simple Content Access Mode",
+			consumerData.Owner.DisplayName)
 	}
-
-	// TODO: when not-SCA mode is used, then try to do auto-attach, when it was requested and generate content
 
 	return nil
 }
 
-func getInstalledProducts(err error) []InstalledProduct {
-	fmt.Printf("reading product directory: %s\n", rhsmClient.RHSMConf.RHSM.ProductCertDir)
-	installedProducts, err := readAllProductCertificates(rhsmClient.RHSMConf.RHSM.ProductCertDir)
+// enableContent tries to get SCA entitlement certificate and generate redhat.repo from this
+// certificate
+func enableContent() error {
+	// Try to get entitlement certificate(s) from server
+	entCertKeys, err := getSCAEntitlementCertificate()
 	if err != nil {
-		fmt.Printf("failed reading prod dir: %s\n", err)
+		return err
 	}
 
-	fmt.Printf("reading default product directory: %s\n", DirectoryDefaultProductCertificate)
+	if len(entCertKeys) > 1 {
+		fmt.Printf("Entitlement certificates installed\n")
+	} else {
+		fmt.Printf("Entitlement certificate installed\n")
+	}
+
+	// Get content from entitlement certificates
+	// Note: candlepin returns only one entitlement certificate in SCA mode, but
+	// in theory more entitlement certificate can be returned
+	var engineeringProducts = make(map[int64][]EngineeringProduct)
+	for _, entCertKey := range entCertKeys {
+		serial := entCertKey.Serial.Serial
+		certContent := &entCertKey.Cert
+		products, err := getContentFromEntCert(certContent)
+		if err != nil {
+			// TODO: write some warning to log file
+			continue
+		}
+		engineeringProducts[serial] = products
+	}
+
+	// Write content to redhat.repo file
+	if len(engineeringProducts) > 0 {
+		err = writeRepoFile(DefaultRepoFilePath, engineeringProducts)
+		if err != nil {
+			return fmt.Errorf("unable to write repo file: %s: %s", DefaultRepoFilePath, err)
+		}
+	}
+
+	fmt.Printf("%s was generated\n", DefaultRepoFilePath)
+
+	return nil
+}
+
+// getInstalledProducts tries to get all installed products. Typically from directories:
+// /etc/pki/product and /etc/pki/product-default
+func getInstalledProducts() []InstalledProduct {
+	installedProducts, err := readAllProductCertificates(rhsmClient.RHSMConf.RHSM.ProductCertDir)
+	if err != nil {
+		// TODO: print some warning message to log file
+		// log.Printf("failed reading prod dir: %s\n", err)
+	}
+
 	installedDefaultProducts, err := readAllProductCertificates(DirectoryDefaultProductCertificate)
 	if err != nil {
-		fmt.Printf("failed reading default prod dir: %s\n", err)
+		// TODO: print some warning message to log file
+		// log.Printf("failed reading default prod dir: %s\n", err)
 	}
 
 	installedProducts = append(installedProducts, installedDefaultProducts...)

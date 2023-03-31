@@ -16,6 +16,7 @@ import (
 const DefaultRepoFilePath = "/etc/yum.repos.d/redhat.repo"
 
 // EngineeringProduct is structure containing information about one engineering product.
+// This structure is unmarshalled from entitlement certificate
 type EngineeringProduct struct {
 	Id            string        `json:"id"`
 	Name          string        `json:"name"`
@@ -52,65 +53,67 @@ type EntitlementContentJSON struct {
 	} `json:"pool"`
 }
 
-// writeRepoFile tries to write list of products to repo file
-func writeRepoFile(filePath string, serial int64, products []EngineeringProduct) error {
+// writeRepoFile tries to write map of products to repo file
+func writeRepoFile(filePath string, productsMap map[int64][]EngineeringProduct) error {
 	file := ini.Empty()
 
 	ini.PrettyFormat = false
 
-	for _, product := range products {
-		for _, content := range product.Content {
-			section, err := file.NewSection(content.Name)
-			if err != nil {
-				return fmt.Errorf("unable to add section: %s: %s", content.Name, err)
-			}
-
-			// name
-			_, _ = section.NewKey("name", content.Name)
-
-			// baseurl
-			baseURL, err := url.Parse(rhsmClient.RHSMConf.RHSM.BaseURL + content.Path)
-			if err != nil {
-				return fmt.Errorf("unable to create parse base URL: %s", err)
-			}
-			_, _ = section.NewKey("baseurl", baseURL.String())
-
-			// enabled
-			var enabled string
-			if content.Enabled {
-				enabled = "1"
-			} else {
-				enabled = "0"
-			}
-			_, _ = section.NewKey("enabled", enabled)
-			_, _ = section.NewKey("enabled_metadata", enabled)
-
-			// gpg
-			if len(content.GpgUrl) > 0 {
-				_, _ = section.NewKey("gpgcheck", "1")
-				_, _ = section.NewKey("gpgkey", content.GpgUrl)
-			} else {
-				_, _ = section.NewKey("gpgcheck", "0")
-			}
-
-			// ssl
-			_, _ = section.NewKey("sslverify", "1")
-			_, _ = section.NewKey("sslcacert", rhsmClient.RHSMConf.RHSM.RepoCACertificate)
-			keyPath := rhsmClient.entKeyPath(serial)
-			certPath := rhsmClient.entCertPath(serial)
-			_, _ = section.NewKey("sslclientkey", *keyPath)
-			_, _ = section.NewKey("sslclientcert", *certPath)
-
-			// metadata
-			_, _ = section.NewKey("metadata_expire", strconv.Itoa(content.MetadataExpire))
-
-			// arches
-			if len(content.Arches) > 0 {
-				var arches string
-				for _, arch := range content.Arches {
-					arches = arches + arch
+	for serial, products := range productsMap {
+		for _, product := range products {
+			for _, content := range product.Content {
+				section, err := file.NewSection(content.Name)
+				if err != nil {
+					return fmt.Errorf("unable to add section: %s: %s", content.Name, err)
 				}
-				_, _ = section.NewKey("arches", arches)
+
+				// name
+				_, _ = section.NewKey("name", content.Name)
+
+				// baseurl
+				baseURL, err := url.Parse(rhsmClient.RHSMConf.RHSM.BaseURL + content.Path)
+				if err != nil {
+					return fmt.Errorf("unable to create parse base URL: %s", err)
+				}
+				_, _ = section.NewKey("baseurl", baseURL.String())
+
+				// enabled
+				var enabled string
+				if content.Enabled {
+					enabled = "1"
+				} else {
+					enabled = "0"
+				}
+				_, _ = section.NewKey("enabled", enabled)
+				_, _ = section.NewKey("enabled_metadata", enabled)
+
+				// gpg
+				if len(content.GpgUrl) > 0 {
+					_, _ = section.NewKey("gpgcheck", "1")
+					_, _ = section.NewKey("gpgkey", content.GpgUrl)
+				} else {
+					_, _ = section.NewKey("gpgcheck", "0")
+				}
+
+				// ssl
+				_, _ = section.NewKey("sslverify", "1")
+				_, _ = section.NewKey("sslcacert", rhsmClient.RHSMConf.RHSM.RepoCACertificate)
+				keyPath := rhsmClient.entKeyPath(serial)
+				certPath := rhsmClient.entCertPath(serial)
+				_, _ = section.NewKey("sslclientkey", *keyPath)
+				_, _ = section.NewKey("sslclientcert", *certPath)
+
+				// metadata
+				_, _ = section.NewKey("metadata_expire", strconv.Itoa(content.MetadataExpire))
+
+				// arches
+				if len(content.Arches) > 0 {
+					var arches string
+					for _, arch := range content.Arches {
+						arches = arches + arch
+					}
+					_, _ = section.NewKey("arches", arches)
+				}
 			}
 		}
 	}
@@ -122,11 +125,11 @@ func writeRepoFile(filePath string, serial int64, products []EngineeringProduct)
 	return nil
 }
 
-// generateContentFromEntCert tries to get content definition from content of entitlement certificate
-// and write content to repo file
-func generateContentFromEntCert(serial int64, entCert *string) error {
+// getContentFromEntCert tries to get content definition from content of entitlement certificate
+func getContentFromEntCert(entCert *string) ([]EngineeringProduct, error) {
 	data := []byte(*entCert)
 	blockEntitlementDataFound := false
+	var engineeringProducts []EngineeringProduct
 
 	// Go through the entitlement certificate and try to get block "ENTITLEMENT DATA"
 	for data != nil {
@@ -141,11 +144,11 @@ func generateContentFromEntCert(serial int64, entCert *string) error {
 				b := bytes.NewReader(block.Bytes)
 				zReader, err := zlib.NewReader(b)
 				if err != nil {
-					return fmt.Errorf("unable to create new zlib readed for ENTITLEMENT DATA: %s", err)
+					return nil, fmt.Errorf("unable to create new zlib readed for ENTITLEMENT DATA: %s", err)
 				}
 				p, err := io.ReadAll(zReader)
 				if err != nil {
-					return fmt.Errorf("unable to uncompress ENTITLEMENT DATA: %s", err)
+					return nil, fmt.Errorf("unable to uncompress ENTITLEMENT DATA: %s", err)
 				}
 				_ = zReader.Close()
 
@@ -153,18 +156,18 @@ func generateContentFromEntCert(serial int64, entCert *string) error {
 				var entitlementContents EntitlementContentJSON
 				err = json.Unmarshal(p, &entitlementContents)
 				if err != nil {
-					return err
+					return nil, err
 				}
 
-				err = writeRepoFile(DefaultRepoFilePath, serial, entitlementContents.Products)
+				engineeringProducts = append(engineeringProducts, entitlementContents.Products...)
 			}
 		}
 		data = rest
 	}
 
 	if blockEntitlementDataFound == false {
-		return fmt.Errorf("unable to generate content, because no block \"ENTITLEMENT DATA\" found")
+		return nil, fmt.Errorf("unable to get content, because no block \"ENTITLEMENT DATA\" found")
 	}
 
-	return nil
+	return engineeringProducts, nil
 }

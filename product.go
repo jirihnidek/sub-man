@@ -171,11 +171,9 @@ func readAllProductCertificates(productCertDirPath string) ([]InstalledProduct, 
 	}
 	for _, file := range productCertsFilePaths {
 		filePath := filepath.Join(productCertDirPath, file.Name())
-		fmt.Printf("reading product certificate: %s\n", filePath)
 		productCert, err := readProductCertificate(&filePath)
 		if err != nil {
 			// TODO: print log message about skipping this file
-			fmt.Printf("error: reading reading product certificate: %s\n", err)
 		}
 		productCerts = append(productCerts, *productCert)
 	}
