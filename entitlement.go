@@ -4,19 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 )
-
-// EntitlementSerialJSON is structure used for un-marshaling of JSON document returned from candlepin server.
-// JSON document includes list of this objects
-type EntitlementSerialJSON struct {
-	Created    interface{} `json:"created"`
-	Updated    interface{} `json:"updated"`
-	Id         interface{} `json:"id"`
-	Serial     int64       `json:"serial"`
-	Expiration interface{} `json:"expiration"`
-	Revoked    interface{} `json:"revoked"`
-}
 
 // EntitlementCertificateJSON is structure used for un-marshaling of JSON returned from candlepin server
 // JSON document includes list of this objects
@@ -34,96 +22,6 @@ type EntitlementCertificateJSON struct {
 		Expiration string `json:"expiration"`
 		Revoked    bool   `json:"revoked"`
 	} `json:"serial"`
-}
-
-// getEntitlementSerials tries to get list of entitlement serial numbers for given consumer.
-// This method should be used only in non-SCA mode
-func getEntitlementSerials() (*[]int64, error) {
-	var entitlementSerialNumbers []int64
-	consumerCertFile := rhsmClient.consumerCertPath()
-
-	uuid, err := getConsumerUUID(consumerCertFile)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get consumer certificate: %v", err)
-	}
-
-	res, err := rhsmClient.ConsumerCertAuthConnection.request(
-		http.MethodGet,
-		"consumers/"+*uuid+"/certificates/serials",
-		"",
-		"",
-		nil,
-		nil)
-
-	if err != nil {
-		return nil, fmt.Errorf("getting certificate serials failed: %s", err)
-	}
-
-	resBody, err := getResponseBody(res)
-
-	if err != nil {
-		return nil, err
-	}
-
-	// Define list of structures
-	var entitlementSerials []EntitlementSerialJSON
-	err = json.Unmarshal([]byte(*resBody), &entitlementSerials)
-
-	if err != nil {
-		return nil, err
-	}
-
-	for _, item := range entitlementSerials {
-		entitlementSerialNumbers = append(entitlementSerialNumbers, item.Serial)
-	}
-
-	return &entitlementSerialNumbers, nil
-}
-
-// getEntitlementCertificate tries to get entitlement certificate with given serial number.
-// When it is possible to get entitlement certificate, then this certificate is written to file.
-// This method should be used only in non-SCA mode
-func getEntitlementCertificate(serialNum int64) error {
-	consumerCertFile := rhsmClient.consumerCertPath()
-
-	uuid, err := getConsumerUUID(consumerCertFile)
-
-	if err != nil {
-		return fmt.Errorf("failed to get consumer certificate: %v", err)
-	}
-
-	res, err := rhsmClient.ConsumerCertAuthConnection.request(
-		http.MethodGet,
-		"consumers/"+*uuid+"/certificates",
-		"serials="+strconv.FormatInt(serialNum, 10),
-		"",
-		nil,
-		nil)
-
-	if err != nil {
-		return fmt.Errorf("getting entitlement certificate with serial number: %d failed: %s", serialNum, err)
-	}
-
-	resBody, err := getResponseBody(res)
-
-	if err != nil {
-		return err
-	}
-
-	var entCertificates []EntitlementCertificateJSON
-	err = json.Unmarshal([]byte(*resBody), &entCertificates)
-
-	if err != nil {
-		return err
-	}
-
-	for _, entCert := range entCertificates {
-		_ = writeEntitlementCert(&entCert.Cert, entCert.Serial.Serial)
-		_ = writeEntitlementKey(&entCert.Key, entCert.Serial.Serial)
-	}
-
-	return nil
 }
 
 // getEntitlementCertificate tries to get all SCA entitlement certificate(s).
