@@ -297,12 +297,14 @@ func createListOfContentTags(installedProducts []InstalledProduct) []string {
 // typically /etc/pki/consumer/cert.pem
 func writeConsumerCert(consumerCert *string) error {
 	consumerCertFile := rhsmClient.consumerCertPath()
-	return writePemFile(consumerCertFile, consumerCert)
+	var mode os.FileMode = 0640
+	return writePemFile(consumerCertFile, consumerCert, &mode)
 }
 
 // writeConsumerKey tries to write consumer key. It is typically
 // /etc/pki/consumer/key.pem
 func writeConsumerKey(consumerKey *string) error {
 	consumerKeyFile := rhsmClient.consumerKeyPath()
-	return writePemFile(consumerKeyFile, consumerKey)
+	var mode os.FileMode = 0640
+	return writePemFile(consumerKeyFile, consumerKey, &mode)
 }

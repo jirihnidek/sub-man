@@ -105,12 +105,12 @@ func getSCAEntitlementCertificate() ([]EntitlementCertificateKeyJSON, error) {
 // typically /etc/pki/entitlement/<serial_number>.pem
 func writeEntitlementCert(entCert *string, serialNum int64) (*string, error) {
 	entCertFilePath := rhsmClient.entCertPath(serialNum)
-	return entCertFilePath, writePemFile(entCertFilePath, entCert)
+	return entCertFilePath, writePemFile(entCertFilePath, entCert, nil)
 }
 
 // writeEntitlementCert tries to write entitlement certificate. It is
 // typically /etc/pki/entitlement/<serial_number>-key.pem
 func writeEntitlementKey(entKey *string, serialNum int64) (*string, error) {
 	entKeyFilePath := rhsmClient.entKeyPath(serialNum)
-	return entKeyFilePath, writePemFile(entKeyFilePath, entKey)
+	return entKeyFilePath, writePemFile(entKeyFilePath, entKey, nil)
 }
