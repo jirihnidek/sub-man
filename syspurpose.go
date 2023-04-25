@@ -15,33 +15,18 @@ type SysPurposeJSON struct {
 	Usage                 string `json:"usage"`
 }
 
-// loadFromFile tries to load system purpose from the file
-func (sysPurpose *SysPurposeJSON) loadFromFile(filePath string) error {
-	sysPurposeContent, err := os.ReadFile(filePath)
-	if err != nil {
-		return fmt.Errorf("unable to read system purpose file: %s, %s", filePath, err)
-	}
-
-	err = json.Unmarshal(sysPurposeContent, sysPurpose)
-	if err != nil {
-		return fmt.Errorf("unable to unmarshal system purpose file: %s: %s", filePath, err)
-	}
-
-	return nil
-}
-
 // getSystemPurpose tries to load system purpose from given file
-func getSystemPurpose(filePath string) (*SysPurposeJSON, error) {
+func getSystemPurpose(filePath *string) (*SysPurposeJSON, error) {
 	var sysPurpose = SysPurposeJSON{"", "", ""}
 
-	_, err := os.Stat(filePath)
+	sysPurposeContent, err := os.ReadFile(*filePath)
 	if err != nil {
-		return &sysPurpose, nil
+		return &sysPurpose, fmt.Errorf("unable to read system purpose file: %s, %s", *filePath, err)
 	}
 
-	err = sysPurpose.loadFromFile(filePath)
+	err = json.Unmarshal(sysPurposeContent, &sysPurpose)
 	if err != nil {
-		return nil, err
+		return &sysPurpose, fmt.Errorf("unable to unmarshal system purpose file: %s: %s", *filePath, err)
 	}
 
 	return &sysPurpose, nil

@@ -121,7 +121,8 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 		return fmt.Errorf("unable to get hostname: %s", err)
 	}
 
-	sysPurpose, err := getSystemPurpose(DefaultSystemPurposeFilePath)
+	var defaultSyspurposeFilePath = DefaultSystemPurposeFilePath
+	sysPurpose, err := getSystemPurpose(&defaultSyspurposeFilePath)
 	if err != nil {
 		return err
 	}

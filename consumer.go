@@ -26,7 +26,7 @@ func getConsumerUUID(consumerCertFileName *string) (*string, error) {
 			return nil, fmt.Errorf("failed to parse PEM certificate: %s: %v", *consumerCertFileName, err)
 		}
 
-		// Note: Similar method could be use for getting other useful information (e.g. org ID).
+		// Note: Similar method could be used for getting other useful information (e.g. org ID).
 		// fmt.Printf("Org ID: %v\n", certificate.Subject.Organization[0])
 
 		return &certificate.Subject.CommonName, nil
