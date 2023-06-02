@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -260,14 +261,12 @@ func enableContent() error {
 func getInstalledProducts() []InstalledProduct {
 	installedProducts, err := readAllProductCertificates(rhsmClient.RHSMConf.RHSM.ProductCertDir)
 	if err != nil {
-		// TODO: print some warning message to log file
-		// log.Printf("failed reading prod dir: %s\n", err)
+		log.Printf("failed reading directory with product certificates: %s\n", err)
 	}
 
 	installedDefaultProducts, err := readAllProductCertificates(DirectoryDefaultProductCertificate)
 	if err != nil {
-		// TODO: print some warning message to log file
-		// log.Printf("failed reading default prod dir: %s\n", err)
+		log.Printf("failed reading directory with default product certificates: %s\n", err)
 	}
 
 	installedProducts = append(installedProducts, installedDefaultProducts...)
@@ -287,8 +286,8 @@ func createListOfContentTags(installedProducts []InstalledProduct) []string {
 			}
 		}
 	}
-	// Create list from the map
-	for tagName, _ := range contentTagsMap {
+	// Create list from the map (we care only about keys)
+	for tagName := range contentTagsMap {
 		contentTags = append(contentTags, tagName)
 	}
 	return contentTags

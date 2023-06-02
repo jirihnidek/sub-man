@@ -165,7 +165,7 @@ func getContentFromEntCert(entCert *string) ([]EngineeringProduct, error) {
 		data = rest
 	}
 
-	if blockEntitlementDataFound == false {
+	if !blockEntitlementDataFound {
 		return nil, fmt.Errorf("unable to get content, because no block \"ENTITLEMENT DATA\" found")
 	}
 

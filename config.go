@@ -199,7 +199,6 @@ func prettyPrintOption(optValue reflect.Value, valType reflect.StructField) {
 
 	// When value is not default, and it is allowed, then print it with green color
 	fmt.Printf("%s    %s = %v %s\n", colorGreen, tagIniValue, value, noColor)
-	return
 }
 
 // prettyPrintOptions tries to print keys and values of one configuration
