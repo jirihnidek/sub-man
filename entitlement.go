@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 )
@@ -70,10 +71,8 @@ func getSCAEntitlementCertificate() ([]EntitlementCertificateKeyJSON, error) {
 		if l == 0 {
 			return nil, fmt.Errorf("no SCA entitlement certificate returned from server")
 		}
-		if l > 0 {
-			// TODO: print warning that more than one entitlement certificate was returned
-			// log.Printf("more than one SCA (%d) entitlement certificates installed", l)
-		}
+		// if l > 0 {} TODO: print warning that more than one entitlement certificate was returned
+		// log.Printf("more than one SCA (%d) entitlement certificates installed", l)
 	}
 
 	// Write certificate(s) and key(s) to file(s)
@@ -86,14 +85,13 @@ func getSCAEntitlementCertificate() ([]EntitlementCertificateKeyJSON, error) {
 		}
 		_, err = writeEntitlementKey(&entCertKey.Key, entCertKey.Serial.Serial)
 		if err != nil {
-			// TODO: print error that it was possible to install entitlement key
-			// log.Printf("%s", err)
+			log.Printf("unable to write entitlement key: %s", err)
 
 			// When it is not possible to install key, then remove certificate file, because
 			// certificate is useless without key
 			err = os.Remove(*entCertFilePath)
 			if err != nil {
-				// TODO: print error that it was not possible to remove entitlement certificate
+				log.Printf("unable to remove entitlement certificate: %s", err)
 			}
 		}
 	}

@@ -59,6 +59,9 @@ func createRHSMClient(confFilePath *string) error {
 				&certFilePath,
 				&keyFilePath,
 			)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	rhsmClient.ConsumerCertAuthConnection = consumerCertAuthConnection

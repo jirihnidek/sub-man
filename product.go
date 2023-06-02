@@ -6,6 +6,7 @@ import (
 	"encoding/asn1"
 	"encoding/pem"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -173,7 +174,8 @@ func readAllProductCertificates(productCertDirPath string) ([]InstalledProduct, 
 		filePath := filepath.Join(productCertDirPath, file.Name())
 		productCert, err := readProductCertificate(&filePath)
 		if err != nil {
-			// TODO: print log message about skipping this file
+			log.Printf("skipping product certificate: %s: %v", filePath, err)
+			continue
 		}
 		productCerts = append(productCerts, *productCert)
 	}
