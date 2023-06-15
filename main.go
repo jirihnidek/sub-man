@@ -49,8 +49,22 @@ func registerAction(ctx *cli.Context) error {
 	username := ctx.String("username")
 	password := ctx.String("password")
 	org := ctx.String("organization")
+	activationKeys := ctx.StringSlice("activation-key")
 
-	return registerUsernamePasswordOrg(&username, &password, &org)
+	// Check if username/password and any activation key was provided, because
+	// it is not possible to use both at the same time
+	if len(username) > 0 && len(activationKeys) > 0 {
+		return fmt.Errorf("cannot use both username/password and activation key(s) at the same time")
+	}
+
+	if len(activationKeys) > 0 {
+		if len(org) == 0 {
+			return fmt.Errorf("organization ID must be provided when using activation key(s)")
+		}
+		return registerOrgActivationKeys(&org, activationKeys)
+	} else {
+		return registerUsernamePasswordOrg(&username, &password, &org)
+	}
 }
 
 // unregisterAction tries to unregister the system from candlepin server
@@ -110,6 +124,11 @@ func main() {
 					Name:    "organization",
 					Usage:   "register with `ID`",
 					Aliases: []string{"o"},
+				},
+				&cli.StringSliceFlag{
+					Name:    "activation-key",
+					Usage:   "register with `KEY(s)`",
+					Aliases: []string{"k"},
 				},
 			},
 			Usage:       "Register system",
