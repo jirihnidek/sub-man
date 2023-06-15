@@ -94,23 +94,8 @@ type ConsumerData struct {
 	Environments   interface{}   `json:"environments"`
 }
 
-// registerUsernamePasswordOrg tries to register system using organization id, username and password
-func registerUsernamePasswordOrg(username *string, password *string, org *string) error {
-	var headers = make(map[string]string)
-
-	headers["username"] = *username
-	headers["password"] = *password
-
-	// TODO: when organization is not specified using CLI option --organization,
-	//       then get list of available organization using: GET /users/<username>/owners
-
-	var query string
-	if *org != "" {
-		query = "owner=" + *org
-	} else {
-		query = ""
-	}
-
+// registerSystem tries to register system
+func registerSystem(headers map[string]string, query string) error {
 	// It is necessary to set system certificate version to value 3.0 or higher
 	facts := SystemFacts{
 		SystemCertificateVersion: "3.2",
@@ -213,6 +198,45 @@ func registerUsernamePasswordOrg(username *string, password *string, org *string
 	return nil
 }
 
+// registerOrgActivationKeys tries to register system using organization id and activation keys
+func registerOrgActivationKeys(org *string, activationKeys []string) error {
+	var headers = make(map[string]string)
+
+	headers["Content-type"] = "application/json"
+
+	var strActivationKeys string
+	for idx, activationKey := range activationKeys {
+		strActivationKeys += activationKey
+		if idx < len(activationKeys)-1 {
+			strActivationKeys += ","
+		}
+	}
+
+	query := "owner=" + *org + "&activation_keys=" + strActivationKeys
+
+	return registerSystem(headers, query)
+}
+
+// registerUsernamePasswordOrg tries to register system using organization id, username and password
+func registerUsernamePasswordOrg(username *string, password *string, org *string) error {
+	var headers = make(map[string]string)
+
+	headers["username"] = *username
+	headers["password"] = *password
+
+	// TODO: when organization is not specified using CLI option --organization,
+	//       then get list of available organization using: GET /users/<username>/owners
+
+	var query string
+	if *org != "" {
+		query = "owner=" + *org
+	} else {
+		query = ""
+	}
+
+	return registerSystem(headers, query)
+}
+
 // enableContent tries to get SCA entitlement certificate and generate redhat.repo from this
 // certificate
 func enableContent() error {
@@ -251,7 +275,7 @@ func enableContent() error {
 		}
 	}
 
-	fmt.Printf("%s was generated\n", DefaultRepoFilePath)
+	fmt.Printf("%s generated\n", DefaultRepoFilePath)
 
 	return nil
 }
