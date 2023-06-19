@@ -7,6 +7,22 @@ import (
 	"os"
 )
 
+// versionAction tries to print version and version of server
+func versionAction(ctx *cli.Context) error {
+	clientVer, err := clientVersion()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("sub-man: %s\n", clientVer)
+	serverVer, serverRulesVer, err := serverVersion()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("subscription management server: %s\n", *serverVer)
+	fmt.Printf("subscription management rules: %s\n", *serverRulesVer)
+	return nil
+}
+
 // statusAction tries to prettyPrint status
 func statusAction(ctx *cli.Context) error {
 	return status()
@@ -163,6 +179,13 @@ func main() {
 			UsageText:   fmt.Sprintf("%v config", app.Name),
 			Description: fmt.Sprintf("Print configuration of %v", app.Name),
 			Action:      configAction,
+		},
+		{
+			Name:        "version",
+			Usage:       "Print version",
+			UsageText:   fmt.Sprintf("%s version", app.Name),
+			Description: fmt.Sprintf("Print version of %s and server", app.Name),
+			Action:      versionAction,
 		},
 	}
 
