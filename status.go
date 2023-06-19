@@ -4,10 +4,35 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
+// RHSMStatus is structure used for storing GET response from REST API
+// endpoint "/status". This endpoint can be called using no-auth or
+// consumer-cert-auth connection
+type RHSMStatus struct {
+	Mode                string      `json:"mode"`
+	ModeReason          interface{} `json:"modeReason"`
+	ModeChangeTime      interface{} `json:"modeChangeTime"`
+	Result              bool        `json:"result"`
+	Version             string      `json:"version"`
+	Release             string      `json:"release"`
+	Standalone          bool        `json:"standalone"`
+	TimeUTC             time.Time   `json:"timeUTC"`
+	RulesSource         string      `json:"rulesSource"`
+	RulesVersion        string      `json:"rulesVersion"`
+	ManagerCapabilities []string    `json:"managerCapabilities"`
+	KeycloakRealm       interface{} `json:"keycloakRealm"`
+	KeycloakAuthUrl     interface{} `json:"keycloakAuthUrl"`
+	KeycloakResource    interface{} `json:"keycloakResource"`
+	DeviceAuthRealm     interface{} `json:"deviceAuthRealm"`
+	DeviceAuthUrl       interface{} `json:"deviceAuthUrl"`
+	DeviceAuthClientId  interface{} `json:"deviceAuthClientId"`
+	DeviceAuthScope     interface{} `json:"deviceAuthScope"`
+}
+
 // RHSMCompliant is structure used for storing GET response from REST API
-// endpoint consumers/<consumer-UUID>/compliance
+// endpoint "/consumers/<consumer-UUID>/compliance"
 type RHSMCompliant struct {
 	Status            string      `json:"status"`
 	Compliant         bool        `json:"compliant"`
@@ -26,7 +51,7 @@ type RHSMCompliant struct {
 }
 
 // RHSMSyspurposeCompliant is structure used for storing GET response from REST API
-// endpoint consumers/<consumer-UUID>/purpose_compliance. This REST API endpoint
+// endpoint "/consumers/<consumer-UUID>/purpose_compliance". This REST API endpoint
 // should be called only in the case, when entitlement content access mode is used.
 type RHSMSyspurposeCompliant struct {
 	Status                  string      `json:"status"`
