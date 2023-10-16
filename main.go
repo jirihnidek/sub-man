@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/jirihnidek/rhsm2"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 )
+
+var rhsmClient *rhsm2.RHSMClient
 
 // versionAction tries to print version and version of server
 func versionAction(ctx *cli.Context) error {
@@ -23,35 +26,27 @@ func versionAction(ctx *cli.Context) error {
 	return nil
 }
 
-// statusAction tries to prettyPrint status
-func statusAction(ctx *cli.Context) error {
-	return status()
-}
-
 // identityAction tries to prettyPrint system identity
 func identityAction(ctx *cli.Context) error {
-	consumerCertFile := rhsmClient.consumerCertPath()
-	uuid, err := getConsumerUUID(consumerCertFile)
-
+	uuid, err := rhsmClient.GetConsumerUUID()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("System identity: %v\n", *uuid)
+	owner, err := rhsmClient.GetOwner()
+	if err != nil {
+		return nil
+	}
+
+	fmt.Printf("system identity: %v\n", *uuid)
+	fmt.Printf("org ID: %v\n", owner)
 
 	return nil
 }
 
 // configAction tries to prettyPrint configuration
 func configAction(ctx *cli.Context) error {
-	confFilePath := ctx.String("config")
-	rhsmConf, err := loadRHSMConf(&confFilePath)
-
-	if err != nil {
-		return nil
-	}
-
-	err = rhsmConf.prettyPrint()
+	err := prettyPrint(rhsmClient.RHSMConf)
 
 	if err != nil {
 		return nil
@@ -77,24 +72,25 @@ func registerAction(ctx *cli.Context) error {
 		if len(org) == 0 {
 			return fmt.Errorf("organization ID must be provided when using activation key(s)")
 		}
-		return registerOrgActivationKeys(&org, activationKeys)
+		_, err := rhsmClient.RegisterOrgActivationKeys(&org, activationKeys)
+		return err
 	} else {
-		return registerUsernamePasswordOrg(&username, &password, &org)
+		_, err := rhsmClient.RegisterUsernamePasswordOrg(&username, &password, &org)
+		return err
 	}
 }
 
 // unregisterAction tries to unregister the system from candlepin server
 func unregisterAction(ctx *cli.Context) error {
-	return unregister()
+	return rhsmClient.Unregister()
 }
-
-var rhsmClient *RHSMClient
 
 // beforeAction is triggered before other actions are triggered
 func beforeAction(ctx *cli.Context) error {
+	var err error
 	confFilePath := ctx.String("config")
 
-	err := createRHSMClient(&confFilePath)
+	rhsmClient, err = rhsm2.CreateRHSMClient(&confFilePath)
 
 	if err != nil {
 		return fmt.Errorf("failed to create RHSM client: %v", err)
@@ -115,7 +111,7 @@ func main() {
 		&cli.StringFlag{
 			Name:      "config",
 			Hidden:    true,
-			Value:     defaultRHSMConfFilePath,
+			Value:     rhsm2.DefaultRHSMConfFilePath,
 			TakesFile: true,
 			Usage:     "Read config values from `FILE`",
 		},
@@ -158,13 +154,6 @@ func main() {
 			UsageText:   fmt.Sprintf("%v unregister", app.Name),
 			Description: "Unregister the system",
 			Action:      unregisterAction,
-		},
-		{
-			Name:        "status",
-			Usage:       "Print status",
-			UsageText:   fmt.Sprintf("%v status", app.Name),
-			Description: "Print status of system",
-			Action:      statusAction,
 		},
 		{
 			Name:        "identity",
