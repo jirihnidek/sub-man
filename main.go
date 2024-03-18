@@ -8,6 +8,11 @@ import (
 	"os"
 )
 
+var (
+	appName    = "sub-man"
+	appVersion = "0.0.1"
+)
+
 var rhsmClient *rhsm2.RHSMClient
 
 // versionAction tries to print version and version of server
@@ -90,6 +95,8 @@ func beforeAction(ctx *cli.Context) error {
 	var err error
 	confFilePath := ctx.String("config")
 
+	rhsm2.SetUserAgentCmd(appName)
+
 	rhsmClient, err = rhsm2.CreateRHSMClient(&confFilePath)
 
 	if err != nil {
@@ -101,8 +108,8 @@ func beforeAction(ctx *cli.Context) error {
 
 func main() {
 	app := &cli.App{
-		Name:    "sub-man",
-		Version: "0.0.1",
+		Name:    appName,
+		Version: appVersion,
 		Usage:   "Minimalistic CLI client for RHSM",
 	}
 
