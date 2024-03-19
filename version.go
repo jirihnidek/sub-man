@@ -10,7 +10,7 @@ func clientVersion() (string, error) {
 
 // serverVersion tries to get version of server and version of rules
 func serverVersion() (*string, *string, error) {
-	rhsmStatus, err := rhsmClient.GetServerStatus()
+	rhsmStatus, err := rhsmClient.GetServerStatus(nil)
 	if err != nil {
 		return nil, nil, err
 	}

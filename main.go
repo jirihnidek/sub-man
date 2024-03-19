@@ -77,17 +77,17 @@ func registerAction(ctx *cli.Context) error {
 		if len(org) == 0 {
 			return fmt.Errorf("organization ID must be provided when using activation key(s)")
 		}
-		_, err := rhsmClient.RegisterOrgActivationKeys(&org, activationKeys)
+		_, err := rhsmClient.RegisterOrgActivationKeys(&org, activationKeys, nil)
 		return err
 	} else {
-		_, err := rhsmClient.RegisterUsernamePasswordOrg(&username, &password, &org)
+		_, err := rhsmClient.RegisterUsernamePasswordOrg(&username, &password, &org, nil)
 		return err
 	}
 }
 
 // unregisterAction tries to unregister the system from candlepin server
 func unregisterAction(ctx *cli.Context) error {
-	return rhsmClient.Unregister()
+	return rhsmClient.Unregister(nil)
 }
 
 // beforeAction is triggered before other actions are triggered
