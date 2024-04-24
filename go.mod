@@ -24,4 +24,4 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
 
-replace github.com/jirihnidek/rhsm2 => ../rhsm2
+// replace github.com/jirihnidek/rhsm2 => ../rhsm2
