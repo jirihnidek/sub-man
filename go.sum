@@ -20,6 +20,8 @@ github.com/jirihnidek/rhsm2 v0.0.0-20240319141052-bd6f12483f63 h1:w/D/s39x7kbUKx
 github.com/jirihnidek/rhsm2 v0.0.0-20240319141052-bd6f12483f63/go.mod h1:Tj1Ds5rvYNS96SOqLaVO8bAy4lYwB01b82nKbs9soL4=
 github.com/jirihnidek/rhsm2 v0.0.0-20240319150153-d8c35e19de7c h1:oyxJZBp1qDW8WOnoZzoqRrNb4ZpEp37MbgCLDa5Lk/E=
 github.com/jirihnidek/rhsm2 v0.0.0-20240319150153-d8c35e19de7c/go.mod h1:Tj1Ds5rvYNS96SOqLaVO8bAy4lYwB01b82nKbs9soL4=
+github.com/jirihnidek/rhsm2 v0.0.0-20240424135902-3305cdd26a04 h1:3noA5MLzWGYBO7a9d47GbWBHTKB4ufKkTj3yRQDZDD0=
+github.com/jirihnidek/rhsm2 v0.0.0-20240424135902-3305cdd26a04/go.mod h1:6eaObz5sx9ZvkOqFz+m7ByBEKyYsIv09pWJ5DuZWK9Y=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
 github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovkB8vQcUbaXHg=
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
