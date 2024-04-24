@@ -97,7 +97,7 @@ func beforeAction(ctx *cli.Context) error {
 
 	rhsm2.SetUserAgentCmd(appName)
 
-	rhsmClient, err = rhsm2.CreateRHSMClient(&confFilePath)
+	rhsmClient, err = rhsm2.GetRHSMClient(&confFilePath)
 
 	if err != nil {
 		return fmt.Errorf("failed to create RHSM client: %v", err)
