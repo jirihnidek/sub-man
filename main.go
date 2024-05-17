@@ -85,6 +85,24 @@ func registerAction(ctx *cli.Context) error {
 	}
 }
 
+// organizationAction tries to get list of organizations for given user
+func organizationsAction(ctx *cli.Context) error {
+	username := ctx.String("username")
+	password := ctx.String("password")
+
+	orgs, err := rhsmClient.GetOrgs(username, password, nil)
+	if err != nil {
+		return err
+	}
+
+	for _, org := range orgs {
+		fmt.Printf("name: %s\n", org.DisplayName)
+		fmt.Printf("key: %s\n\n", org.Key)
+	}
+
+	return nil
+}
+
 // unregisterAction tries to unregister the system from candlepin server
 func unregisterAction(ctx *cli.Context) error {
 	return rhsmClient.Unregister(nil)
@@ -154,6 +172,25 @@ func main() {
 			UsageText:   fmt.Sprintf("%v register [command options]", app.Name),
 			Description: "The register command registers the system to Red Hat Subscription Management",
 			Action:      registerAction,
+		},
+		{
+			Name: "organizations",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "username",
+					Usage:   "get organization for given `USERNAME`",
+					Aliases: []string{"u"},
+				},
+				&cli.StringFlag{
+					Name:    "password",
+					Usage:   "`PASSWORD` of given `USERNAME`",
+					Aliases: []string{"p"},
+				},
+			},
+			Usage:       "Print organizations",
+			UsageText:   fmt.Sprintf("%v orgs", app.Name),
+			Description: "Get list of organizations for given user",
+			Action:      organizationsAction,
 		},
 		{
 			Name:        "unregister",
