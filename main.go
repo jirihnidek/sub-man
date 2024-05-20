@@ -60,13 +60,20 @@ func configAction(ctx *cli.Context) error {
 	return nil
 }
 
-// registerAction tries to register system
-func registerAction(ctx *cli.Context) error {
+// beforeRegisterAction checks possible combinations of CLI options
+func beforeRegisterAction(ctx *cli.Context) error {
 	username := ctx.String("username")
 	password := ctx.String("password")
 	org := ctx.String("organization")
+	environments := ctx.StringSlice("environments")
 	activationKeys := ctx.StringSlice("activation-key")
 
+	// Username has to be provided with password
+	if len(username) > 0 {
+		if len(password) == 0 {
+			return fmt.Errorf("--username USERNAME has to be provided with --password PASSWORD")
+		}
+	}
 	// Check if username/password and any activation key was provided, because
 	// it is not possible to use both at the same time
 	if len(username) > 0 && len(activationKeys) > 0 {
@@ -77,10 +84,29 @@ func registerAction(ctx *cli.Context) error {
 		if len(org) == 0 {
 			return fmt.Errorf("organization ID must be provided when using activation key(s)")
 		}
+	}
+
+	// It is also not possible to use environment with activation key(s)
+	if len(activationKeys) > 0 && len(environments) > 0 {
+		return fmt.Errorf("cannot use both activation key(s) with environment(s) at the same time")
+	}
+
+	return nil
+}
+
+// registerAction tries to register system
+func registerAction(ctx *cli.Context) error {
+	username := ctx.String("username")
+	password := ctx.String("password")
+	org := ctx.String("organization")
+	environments := ctx.StringSlice("environments")
+	activationKeys := ctx.StringSlice("activation-key")
+
+	if len(activationKeys) > 0 {
 		_, err := rhsmClient.RegisterOrgActivationKeys(&org, activationKeys, nil)
 		return err
 	} else {
-		_, err := rhsmClient.RegisterUsernamePasswordOrg(&username, &password, &org, nil)
+		_, err := rhsmClient.RegisterUsernamePasswordOrg(&username, &password, &org, environments, nil)
 		return err
 	}
 }
@@ -98,6 +124,25 @@ func organizationsAction(ctx *cli.Context) error {
 	for _, org := range orgs {
 		fmt.Printf("name: %s\n", org.DisplayName)
 		fmt.Printf("key: %s\n\n", org.Key)
+	}
+
+	return nil
+}
+
+// environmentsAction tries to get list of environment for given user and organization
+func environmentsAction(ctx *cli.Context) error {
+	username := ctx.String("username")
+	password := ctx.String("password")
+	org := ctx.String("organization")
+
+	environments, err := rhsmClient.GetEnvironments(username, password, org, nil)
+	if err != nil {
+		return err
+	}
+
+	for _, environment := range environments {
+		fmt.Printf("name: %s\n", environment.Name)
+		fmt.Printf("description: %s\n\n", environment.Description)
 	}
 
 	return nil
@@ -160,7 +205,12 @@ func main() {
 				&cli.StringFlag{
 					Name:    "organization",
 					Usage:   "register with `ID`",
-					Aliases: []string{"o"},
+					Aliases: []string{"o", "org"},
+				},
+				&cli.StringSliceFlag{
+					Name:    "environments",
+					Usage:   "register with `ENVIRONMENT(s)`",
+					Aliases: []string{"e"},
 				},
 				&cli.StringSliceFlag{
 					Name:    "activation-key",
@@ -171,6 +221,7 @@ func main() {
 			Usage:       "Register system",
 			UsageText:   fmt.Sprintf("%v register [command options]", app.Name),
 			Description: "The register command registers the system to Red Hat Subscription Management",
+			Before:      beforeRegisterAction,
 			Action:      registerAction,
 		},
 		{
@@ -190,7 +241,32 @@ func main() {
 			Usage:       "Print organizations",
 			UsageText:   fmt.Sprintf("%v orgs", app.Name),
 			Description: "Get list of organizations for given user",
+			Aliases:     []string{"orgs"},
 			Action:      organizationsAction,
+		},
+		{
+			Name: "environments",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "username",
+					Usage:   "register with `USERNAME`",
+					Aliases: []string{"u"},
+				},
+				&cli.StringFlag{
+					Name:    "password",
+					Usage:   "register with `PASSWORD`",
+					Aliases: []string{"p"},
+				},
+				&cli.StringFlag{
+					Name:    "organization",
+					Usage:   "register with `ID`",
+					Aliases: []string{"o", "org"},
+				},
+			},
+			Usage:       "Print environments",
+			UsageText:   fmt.Sprintf("%v environments", app.Name),
+			Description: "Get list of environments for given user and organization",
+			Action:      environmentsAction,
 		},
 		{
 			Name:        "unregister",
