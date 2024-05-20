@@ -3,7 +3,7 @@ module sub-man
 go 1.18
 
 require (
-	github.com/jirihnidek/rhsm2 v0.0.0-20240424135902-3305cdd26a04
+	github.com/jirihnidek/rhsm2 v0.0.0-20240520115255-d9742f79e183
 	github.com/urfave/cli/v2 v2.27.2
 )
 
@@ -18,7 +18,7 @@ require (
 	github.com/rs/zerolog v1.32.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20240312152122-5f08fbb34913 // indirect
-	golang.org/x/sys v0.19.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
 
