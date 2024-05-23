@@ -3,7 +3,7 @@ module sub-man
 go 1.18
 
 require (
-	github.com/jirihnidek/rhsm2 v0.0.0-20240520115255-d9742f79e183
+	github.com/jirihnidek/rhsm2 v0.0.0-20240523083256-8a11025cd059
 	github.com/urfave/cli/v2 v2.27.2
 )
 
@@ -15,9 +15,9 @@ require (
 	github.com/jeandeaual/go-locale v0.0.0-20240223122105-ce5225dcaa49 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/rs/zerolog v1.32.0 // indirect
+	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/xrash/smetrics v0.0.0-20240312152122-5f08fbb34913 // indirect
+	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )

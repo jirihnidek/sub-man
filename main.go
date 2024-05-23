@@ -6,6 +6,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
+	"strings"
 )
 
 var (
@@ -102,11 +103,18 @@ func registerAction(ctx *cli.Context) error {
 	environments := ctx.StringSlice("environments")
 	activationKeys := ctx.StringSlice("activation-key")
 
+	var options = make(map[string]string)
 	if len(activationKeys) > 0 {
-		_, err := rhsmClient.RegisterOrgActivationKeys(&org, activationKeys, nil)
+		_, err := rhsmClient.RegisterOrgActivationKeys(&org, activationKeys, nil, nil)
 		return err
 	} else {
-		_, err := rhsmClient.RegisterUsernamePasswordOrg(&username, &password, &org, environments, nil)
+		if org != "" {
+			options["org"] = org
+		}
+		if len(environments) > 0 {
+			options["environments"] = strings.Join(environments, ",")
+		}
+		_, err := rhsmClient.RegisterUsernamePassword(&username, &password, &options, nil)
 		return err
 	}
 }
