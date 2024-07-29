@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/jirihnidek/rhsm2 v0.0.0-20240523083256-8a11025cd059
-	github.com/urfave/cli/v2 v2.27.2
+	github.com/urfave/cli/v2 v2.27.3
 )
 
 require (
