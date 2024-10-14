@@ -4,11 +4,11 @@ go 1.18
 
 require (
 	github.com/jirihnidek/rhsm2 v0.0.0-20240523083256-8a11025cd059
-	github.com/urfave/cli/v2 v2.27.4
+	github.com/urfave/cli/v2 v2.27.5
 )
 
 require (
-	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/creasty/defaults v1.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/henvic/httpretty v0.1.3 // indirect
