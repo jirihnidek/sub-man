@@ -16,6 +16,18 @@ var (
 
 var rhsmClient *rhsm2.RHSMClient
 
+func pingAction(ctx *cli.Context) error {
+	_, err := rhsmClient.GetServerEndpoints(nil)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Candlepin server https://%s:%s is running\n",
+		rhsmClient.RHSMConf.Server.Hostname,
+		rhsmClient.RHSMConf.Server.Port,
+	)
+	return nil
+}
+
 // versionAction tries to print version and version of server
 func versionAction(ctx *cli.Context) error {
 	clientVer, err := clientVersion()
@@ -303,6 +315,13 @@ func main() {
 			UsageText:   fmt.Sprintf("%s version", app.Name),
 			Description: fmt.Sprintf("Print version of %s and server", app.Name),
 			Action:      versionAction,
+		},
+		{
+			Name:        "ping",
+			Usage:       "Ping server",
+			UsageText:   fmt.Sprintf("%s ping", app.Name),
+			Description: "Try to ping candlepin server",
+			Action:      pingAction,
 		},
 	}
 
