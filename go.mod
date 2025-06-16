@@ -6,7 +6,7 @@ toolchain go1.23.7
 
 require (
 	github.com/jirihnidek/rhsm2 v0.0.0-20250530152446-00b14fb7719d
-	github.com/urfave/cli/v2 v2.27.6
+	github.com/urfave/cli/v2 v2.27.7
 )
 
 require (
