@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/jirihnidek/rhsm2"
-	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/jirihnidek/rhsm2"
+	"github.com/urfave/cli/v2"
 )
 
 var (
@@ -41,6 +42,20 @@ func versionAction(ctx *cli.Context) error {
 	}
 	fmt.Printf("subscription management server: %s\n", *serverVer)
 	fmt.Printf("subscription management rules: %s\n", *serverRulesVer)
+	return nil
+}
+
+// releaseAction tries to print available releases
+func releaseAction(ctx *cli.Context) error {
+	releases, err := rhsmClient.GetCdnReleases(nil)
+	if err != nil {
+		return err
+	}
+
+	for release := range releases {
+		fmt.Printf("%s\n", release)
+	}
+
 	return nil
 }
 
@@ -294,6 +309,13 @@ func main() {
 			UsageText:   fmt.Sprintf("%v unregister", app.Name),
 			Description: "Unregister the system",
 			Action:      unregisterAction,
+		},
+		{
+			Name:        "release",
+			Usage:       "Manage release",
+			UsageText:   fmt.Sprintf("%v release", app.Name),
+			Description: "Manage release of system",
+			Action:      releaseAction,
 		},
 		{
 			Name:        "identity",
