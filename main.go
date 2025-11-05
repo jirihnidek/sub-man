@@ -47,13 +47,48 @@ func versionAction(ctx *cli.Context) error {
 
 // releaseAction tries to print available releases
 func releaseAction(ctx *cli.Context) error {
-	releases, err := rhsmClient.GetCdnReleases(nil)
-	if err != nil {
-		return err
+	if ctx.Bool("show") {
+		currentRelease, err := rhsmClient.GetReleaseFromServer(nil)
+		if err != nil {
+			return err
+		}
+		if currentRelease == "" {
+			fmt.Printf("current release: not set\n")
+		} else {
+			fmt.Printf("current release: %s\n", currentRelease)
+		}
+		return nil
 	}
 
-	for release := range releases {
-		fmt.Printf("%s\n", release)
+	if release := ctx.String("set"); release != "" {
+		err := rhsmClient.SetReleaseOnServer(nil, release)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("release set to %s\n", release)
+		return nil
+	}
+
+	if ctx.Bool("unset") {
+		err := rhsmClient.SetReleaseOnServer(nil, "")
+		if err != nil {
+			return err
+		}
+		fmt.Println("release was unset")
+		return nil
+	}
+
+	if ctx.Bool("list") {
+		releases, err := rhsmClient.GetCdnReleases(nil)
+		if err != nil {
+			return err
+		}
+
+		for release := range releases {
+			fmt.Printf("%s\n", release)
+		}
+
+		return nil
 	}
 
 	return nil
@@ -316,6 +351,30 @@ func main() {
 			UsageText:   fmt.Sprintf("%v release", app.Name),
 			Description: "Manage release of system",
 			Action:      releaseAction,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "list",
+					Usage:   "list available releases",
+					Aliases: []string{"l"},
+					Value:   true,
+				},
+				&cli.BoolFlag{
+					Name:    "show",
+					Usage:   "show current release",
+					Aliases: []string{"s"},
+					Value:   false,
+				},
+				&cli.StringFlag{
+					Name:    "set",
+					Usage:   "set release",
+					Aliases: []string{"S"},
+				},
+				&cli.BoolFlag{
+					Name:    "unset",
+					Usage:   "unset release",
+					Aliases: []string{"U"},
+				},
+			},
 		},
 		{
 			Name:        "identity",

@@ -3,7 +3,7 @@ module sub-man
 go 1.24.0
 
 require (
-	github.com/jirihnidek/rhsm2 v0.0.0-20251017111901-cf58823c822a
+	github.com/jirihnidek/rhsm2 v0.0.0-20251103163111-c05d6c68a321
 	github.com/urfave/cli/v2 v2.27.7
 )
 
