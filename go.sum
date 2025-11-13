@@ -16,6 +16,8 @@ github.com/jirihnidek/rhsm2 v0.0.0-20251017111901-cf58823c822a h1:v7kjwHV+RC6tp6
 github.com/jirihnidek/rhsm2 v0.0.0-20251017111901-cf58823c822a/go.mod h1:T07z1aLn5B0BF2n6ATtpJtjzBBIw81ZqccOSjjbt7iw=
 github.com/jirihnidek/rhsm2 v0.0.0-20251103163111-c05d6c68a321 h1:eg+bHqrRdB076rap77a8Vsoqk/qpwWYcKl1SVGD4IdU=
 github.com/jirihnidek/rhsm2 v0.0.0-20251103163111-c05d6c68a321/go.mod h1:T07z1aLn5B0BF2n6ATtpJtjzBBIw81ZqccOSjjbt7iw=
+github.com/jirihnidek/rhsm2 v0.0.0-20251112105108-6d959d9aee2f h1:BQIoYfDtNV1wHFVqmeEJbd7qFP+Ue67gqeIO0XQZ4lY=
+github.com/jirihnidek/rhsm2 v0.0.0-20251112105108-6d959d9aee2f/go.mod h1:T07z1aLn5B0BF2n6ATtpJtjzBBIw81ZqccOSjjbt7iw=
 github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovkB8vQcUbaXHg=
 github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE=
 github.com/mattn/go-colorable v0.1.14/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
@@ -42,6 +44,8 @@ golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.12.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.37.0 h1:fdNQudmxPjkdUTPnLn5mdQv7Zwvbvpaxqs831goi9kQ=
 golang.org/x/sys v0.37.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
+golang.org/x/sys v0.38.0 h1:3yZWxaJjBmCWXqhN1qh02AkOnCQ1poK6oF+a7xWL6Gc=
+golang.org/x/sys v0.38.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
 golang.org/x/tools v0.14.0 h1:jvNa2pY0M4r62jkRQ6RwEZZyPcymeL9XZMLBbV7U2nc=
 golang.org/x/tools v0.14.0/go.mod h1:uYBEerGOWcJyEORxN+Ek8+TT266gXkNlHdJBwexUsBg=
 gopkg.in/ini.v1 v1.67.0 h1:Dgnx+6+nfE+IfzjUEISNeydPJh9AXNNsWbGP9KzCsOA=
