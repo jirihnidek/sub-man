@@ -48,7 +48,7 @@ func versionAction(ctx *cli.Context) error {
 // releaseAction tries to print available releases
 func releaseAction(ctx *cli.Context) error {
 	if ctx.Bool("show") {
-		currentRelease, err := rhsmClient.GetReleaseFromServer(nil)
+		currentRelease, err := rhsmClient.GetDnfVarsRelease()
 		if err != nil {
 			return err
 		}
@@ -61,7 +61,7 @@ func releaseAction(ctx *cli.Context) error {
 	}
 
 	if release := ctx.String("set"); release != "" {
-		err := rhsmClient.SetReleaseOnServer(nil, release)
+		err := rhsmClient.SetRelease(release)
 		if err != nil {
 			return err
 		}
@@ -70,7 +70,7 @@ func releaseAction(ctx *cli.Context) error {
 	}
 
 	if ctx.Bool("unset") {
-		err := rhsmClient.SetReleaseOnServer(nil, "")
+		err := rhsmClient.UnsetRelease()
 		if err != nil {
 			return err
 		}
