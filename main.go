@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -91,6 +92,23 @@ func releaseAction(ctx *cli.Context) error {
 		return nil
 	}
 
+	return nil
+}
+
+// profileAction tries to do several actions related to profile
+func profileAction(ctx *cli.Context) error {
+	if ctx.Bool("show") {
+		profile, err := rhsmClient.GatherCombinedProfile()
+		if err != nil {
+			return err
+		}
+		body, err := json.Marshal(profile)
+		if err != nil {
+			return fmt.Errorf("unable to marshal package profile: %s", err)
+		}
+		fmt.Printf("%s\n", string(body))
+		return nil
+	}
 	return nil
 }
 
@@ -371,6 +389,21 @@ func main() {
 					Name:    "unset",
 					Usage:   "unset release",
 					Aliases: []string{"U"},
+				},
+			},
+		},
+		{
+			Name:        "profile",
+			Usage:       "Report profile",
+			UsageText:   fmt.Sprintf("%v profile", app.Name),
+			Description: "Report profile of system",
+			Action:      profileAction,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "show",
+					Usage:   "show current profile",
+					Aliases: []string{"s"},
+					Value:   true,
 				},
 			},
 		},
